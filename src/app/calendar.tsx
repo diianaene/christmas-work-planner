@@ -38,6 +38,7 @@ type IntervalFacultate = {
   id: number;
   persoana: "diana" | "iulia";
   data: string;
+  tip: "facultate" | "ocupata";
   ora_inceput: string;
   ora_sfarsit: string;
 };
@@ -59,7 +60,7 @@ export default function Calendar({
 async function incarcaFacultate() {
   const { data, error } = await supabase
     .from("facultate")
-    .select("id, persoana, data, ora_inceput, ora_sfarsit");
+    .select("id, persoana, data, tip, ora_inceput, ora_sfarsit")
 
   if (error) {
     setMesaj("Eroare la încărcarea facultății: " + error.message);
@@ -344,7 +345,8 @@ async function salveaza() {
         : "text-purple-700"
     }`}
   >
-    🎓 {interval.persoana === "diana" ? "Diana" : "Iulia"}:{" "}
+    {interval.tip === "ocupata" ? "🔒" : "🎓"}{" "}
+{interval.persoana === "diana" ? "Diana" : "Iulia"}:{" "}
     {interval.ora_inceput.slice(0, 5)}–
     {interval.ora_sfarsit.slice(0, 5)}
   </p>

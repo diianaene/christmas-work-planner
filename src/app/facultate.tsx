@@ -13,6 +13,7 @@ type IntervalFacultate = {
   id: number;
   persoana: "diana" | "iulia";
   data: string;
+  tip: "facultate" | "ocupata";
   ora_inceput: string;
   ora_sfarsit: string;
 };
@@ -22,6 +23,7 @@ export default function Facultate() {
   const [data, setData] = useState("");
   const [inceput, setInceput] = useState("");
   const [sfarsit, setSfarsit] = useState("");
+  const [tip, setTip] = useState<"facultate" | "ocupata">("facultate");
 
   const [intervale, setIntervale] = useState<IntervalFacultate[]>([]);
   const [mesaj, setMesaj] = useState("");
@@ -30,7 +32,7 @@ export default function Facultate() {
   async function incarcaIntervale() {
     const { data: randuri, error } = await supabase
       .from("facultate")
-      .select("id, persoana, data, ora_inceput, ora_sfarsit")
+      .select("id, persoana, data, tip, ora_inceput, ora_sfarsit")
       .order("data", { ascending: true })
       .order("ora_inceput", { ascending: true });
 
@@ -58,11 +60,12 @@ export default function Facultate() {
     setLoading(true);
 
     const { error } = await supabase.from("facultate").insert({
-      persoana,
-      data,
-      ora_inceput: inceput,
-      ora_sfarsit: sfarsit,
-    });
+  persoana,
+  data,
+  tip,
+  ora_inceput: inceput,
+  ora_sfarsit: sfarsit,
+});
 
     setLoading(false);
 
@@ -100,11 +103,11 @@ export default function Facultate() {
   return (
     <section className="rounded-2xl bg-white p-6 shadow-md">
       <h3 className="mb-2 text-2xl font-bold text-red-700">
-        🎓 Ore ocupate la facultate
+        📅 Disponibilitate
       </h3>
 
       <p className="mb-6 text-gray-600">
-        Introduceți intervalele în care nu puteți lucra.
+        Adăugați intervalele în care sunteți ocupate.
       </p>
 
       <form
@@ -124,6 +127,19 @@ export default function Facultate() {
             <option value="iulia">💚 Iulia</option>
           </select>
         </label>
+        <label className="text-sm font-medium text-gray-700">
+  Tipul intervalului
+  <select
+    value={tip}
+    onChange={(e) =>
+      setTip(e.target.value as "facultate" | "ocupata")
+    }
+    className="mt-1 w-full rounded-xl border p-3 text-gray-900"
+  >
+    <option value="facultate">🎓 Facultate</option>
+    <option value="ocupata">🔒 Ocupată</option>
+  </select>
+</label>
 
         <label className="text-sm font-medium text-gray-700">
           Data
@@ -174,6 +190,10 @@ export default function Facultate() {
       <h4 className="mb-4 mt-8 text-xl font-bold text-gray-800">
         Intervale ocupate
       </h4>
+      <details className="mt-4">
+  <summary className="cursor-pointer rounded-xl border border-[#E8B8C8] bg-[#FCE4EC] px-5 py-3 font-semibold text-[#842D4B] hover:bg-[#F9DDE7]">
+    📋 Vezi intervalele salvate
+  </summary>
 
       {intervale.length === 0 ? (
         <p className="text-gray-500">
@@ -204,6 +224,9 @@ export default function Facultate() {
                   {interval.ora_inceput.slice(0, 5)}–
                   {interval.ora_sfarsit.slice(0, 5)}
                 </p>
+                <p className="mt-1 text-sm font-medium text-[#842D4B]">
+  {interval.tip === "ocupata" ? "🔒 Ocupată" : "🎓 Facultate"}
+</p>
               </div>
 
               <button
@@ -216,7 +239,8 @@ export default function Facultate() {
             </div>
           ))}
         </div>
-      )}
+            )}
+      </details>
     </section>
   );
 }

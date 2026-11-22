@@ -19,6 +19,7 @@ type IntervalFacultate = {
   id: number;
   persoana: Persoana;
   data: string;
+  tip: "facultate" | "ocupata";
   ora_inceput: string;
   ora_sfarsit: string;
 };
@@ -73,19 +74,28 @@ export default function OrarZilnic({
       (interval) =>
         interval.data === zi &&
         interval.persoana === persoana &&
+        interval.tip === "facultate" &&
         inMinute(interval.ora_inceput) < sfarsitOra &&
         inMinute(interval.ora_sfarsit) > inceputOra
     );
+    const esteOcupata = facultate.some(
+  (interval) =>
+    interval.data === zi &&
+    interval.persoana === persoana &&
+    interval.tip === "ocupata" &&
+    inMinute(interval.ora_inceput) < sfarsitOra &&
+    inMinute(interval.ora_sfarsit) > inceputOra
+);
 
-    return { laMunca, laFacultate };
+    return { laMunca, laFacultate, esteOcupata };
   }
 
   function afiseazaActivitati(
     persoana: Persoana,
     ora: number
   ) {
-    const { laMunca, laFacultate } =
-      activitati(persoana, ora);
+    const { laMunca, laFacultate, esteOcupata } =
+  activitati(persoana, ora);
 
     if (!laMunca && !laFacultate) {
       return (
@@ -105,6 +115,7 @@ export default function OrarZilnic({
     (interval) =>
       interval.data === zi &&
       interval.persoana === persoana &&
+            interval.tip === "facultate" &&
       inMinute(interval.ora_inceput) < (ora + 1) * 60 &&
       inMinute(interval.ora_sfarsit) > ora * 60
   )
@@ -116,6 +127,28 @@ export default function OrarZilnic({
 )
           </span>
         )}
+
+{esteOcupata && (
+  <span className="rounded-lg bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
+    🔒 Ocupată (
+    {facultate
+      .filter(
+        (interval) =>
+          interval.data === zi &&
+          interval.persoana === persoana &&
+          interval.tip === "ocupata" &&
+          inMinute(interval.ora_inceput) < (ora + 1) * 60 &&
+          inMinute(interval.ora_sfarsit) > ora * 60
+      )
+      .map(
+        (interval) =>
+          `${interval.ora_inceput.slice(0, 5)} - ${interval.ora_sfarsit.slice(0, 5)}`
+      )
+      .join(", ")}
+    )
+  </span>
+)}
+
 
         {laMunca && (
           <span
