@@ -6,6 +6,7 @@ import { createClient, type User } from "@supabase/supabase-js";
 import Calendar from "./calendar";
 import Statistici from "./statistici";
 import Facultate from "./facultate";
+import Vanzari from "./vanzari";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -230,6 +231,10 @@ export default function Home() {
 
 <div className="mb-6">
   <Facultate />
+</div>
+
+<div className="mb-6">
+  <Vanzari />
 </div>
 </div>
       
