@@ -18,6 +18,7 @@ export default function Vanzari() {
   const [mesaj, setMesaj] = useState("");
 const [salvare, setSalvare] = useState(false);
 const [vanzariSalvate, setVanzariSalvate] = useState<Vanzare[]>([]);
+
   const [data, setData] = useState(() => {
   const acum = new Date();
   const an = acum.getFullYear();
@@ -26,7 +27,17 @@ const [vanzariSalvate, setVanzariSalvate] = useState<Vanzare[]>([]);
 
   return `${an}-${luna}-${zi}`;
 });
+useEffect(() => {
+  const vanzareExistenta = vanzariSalvate.find(
+    (vanzare) => vanzare.data === data
+  );
 
+  if (vanzareExistenta) {
+    setSuma(String(vanzareExistenta.suma));
+  } else {
+    setSuma("");
+  }
+}, [data, vanzariSalvate]);
   const vanzari = Number(suma) || 0;
   const comision = vanzari * 0.02;
 
