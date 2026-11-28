@@ -1,4 +1,3 @@
-
 "use client";
 
 type Persoana = "diana" | "iulia";
@@ -9,8 +8,8 @@ type Tura = {
 };
 
 type ProgramZi = {
-  diana: Tura;
-  iulia: Tura;
+  diana: Tura[];
+  iulia: Tura[];
 };
 
 type Program = Record<string, ProgramZi>;
@@ -35,17 +34,6 @@ function inMinute(ora: string): number {
   return ore * 60 + minute;
 }
 
-function esteInInterval(
-  ora: number,
-  inceput: string,
-  sfarsit: string
-): boolean {
-  if (!inceput || !sfarsit) return false;
-
-  return ora >= inMinute(inceput) &&
-    ora < inMinute(sfarsit);
-}
-
 export default function OrarZilnic({
   zi,
   program,
@@ -55,20 +43,19 @@ export default function OrarZilnic({
 
   const programZi = program[zi];
 
-  function activitati(
-    persoana: Persoana,
-    ora: number
-  ) {
+  function activitati(persoana: Persoana, ora: number) {
     const inceputOra = ora * 60;
     const sfarsitOra = inceputOra + 60;
 
-    const tura = programZi?.[persoana];
+    const ture = (programZi?.[persoana] ?? []).filter(
+      (tura) =>
+        !!tura.inceput &&
+        !!tura.sfarsit &&
+        inMinute(tura.inceput) < sfarsitOra &&
+        inMinute(tura.sfarsit) > inceputOra
+    );
 
-    const laMunca =
-      !!tura?.inceput &&
-      !!tura?.sfarsit &&
-      inMinute(tura.inceput) < sfarsitOra &&
-      inMinute(tura.sfarsit) > inceputOra;
+    const laMunca = ture.length > 0;
 
     const laFacultate = facultate.some(
       (interval) =>
@@ -78,26 +65,27 @@ export default function OrarZilnic({
         inMinute(interval.ora_inceput) < sfarsitOra &&
         inMinute(interval.ora_sfarsit) > inceputOra
     );
-    const esteOcupata = facultate.some(
-  (interval) =>
-    interval.data === zi &&
-    interval.persoana === persoana &&
-    interval.tip === "ocupata" &&
-    inMinute(interval.ora_inceput) < sfarsitOra &&
-    inMinute(interval.ora_sfarsit) > inceputOra
-);
 
-    return { laMunca, laFacultate, esteOcupata };
+    const esteOcupata = facultate.some(
+      (interval) =>
+        interval.data === zi &&
+        interval.persoana === persoana &&
+        interval.tip === "ocupata" &&
+        inMinute(interval.ora_inceput) < sfarsitOra &&
+        inMinute(interval.ora_sfarsit) > inceputOra
+    );
+
+    return { laMunca, laFacultate, esteOcupata, ture };
   }
 
   function afiseazaActivitati(
     persoana: Persoana,
     ora: number
   ) {
-    const { laMunca, laFacultate, esteOcupata } =
-  activitati(persoana, ora);
+    const { laMunca, laFacultate, esteOcupata, ture } =
+      activitati(persoana, ora);
 
-    if (!laMunca && !laFacultate) {
+    if (!laMunca && !laFacultate && !esteOcupata) {
       return (
         <span className="text-gray-400">
           Liberă
@@ -110,72 +98,75 @@ export default function OrarZilnic({
         {laFacultate && (
           <span className="rounded-lg bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
             🎓 Facultate (
-{facultate
-  .filter(
-    (interval) =>
-      interval.data === zi &&
-      interval.persoana === persoana &&
-            interval.tip === "facultate" &&
-      inMinute(interval.ora_inceput) < (ora + 1) * 60 &&
-      inMinute(interval.ora_sfarsit) > ora * 60
-  )
-  .map(
-    (interval) =>
-      `${interval.ora_inceput.slice(0, 5)} - ${interval.ora_sfarsit.slice(0, 5)}`
-  )
-  .join(", ")}
-)
+            {facultate
+              .filter(
+                (interval) =>
+                  interval.data === zi &&
+                  interval.persoana === persoana &&
+                  interval.tip === "facultate" &&
+                  inMinute(interval.ora_inceput) <
+                    (ora + 1) * 60 &&
+                  inMinute(interval.ora_sfarsit) >
+                    ora * 60
+              )
+              .map(
+                (interval) =>
+                  `${interval.ora_inceput.slice(0, 5)} - ${interval.ora_sfarsit.slice(0, 5)}`
+              )
+              .join(", ")}
+            )
           </span>
         )}
 
-{esteOcupata && (
-  <span className="rounded-lg bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
-    🔒 Ocupată (
-    {facultate
-      .filter(
-        (interval) =>
-          interval.data === zi &&
-          interval.persoana === persoana &&
-          interval.tip === "ocupata" &&
-          inMinute(interval.ora_inceput) < (ora + 1) * 60 &&
-          inMinute(interval.ora_sfarsit) > ora * 60
-      )
-      .map(
-        (interval) =>
-          `${interval.ora_inceput.slice(0, 5)} - ${interval.ora_sfarsit.slice(0, 5)}`
-      )
-      .join(", ")}
-    )
-  </span>
-)}
+        {esteOcupata && (
+          <span className="rounded-lg bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
+            🔒 Ocupată (
+            {facultate
+              .filter(
+                (interval) =>
+                  interval.data === zi &&
+                  interval.persoana === persoana &&
+                  interval.tip === "ocupata" &&
+                  inMinute(interval.ora_inceput) <
+                    (ora + 1) * 60 &&
+                  inMinute(interval.ora_sfarsit) >
+                    ora * 60
+              )
+              .map(
+                (interval) =>
+                  `${interval.ora_inceput.slice(0, 5)} - ${interval.ora_sfarsit.slice(0, 5)}`
+              )
+              .join(", ")}
+            )
+          </span>
+        )}
 
-
-        {laMunca && (
+        {ture.map((tura, index) => (
           <span
+            key={index}
             className={`rounded-lg px-2 py-1 text-xs font-semibold ${
               persoana === "diana"
                 ? "bg-pink-100 text-pink-800"
                 : "bg-green-100 text-green-800"
             }`}
           >
-            🎄 Muncă ({programZi?.[persoana]?.inceput} - {programZi?.[persoana]?.sfarsit})
+            🎄 Muncă ({tura.inceput} - {tura.sfarsit})
           </span>
-        )}
+        ))}
       </div>
     );
   }
 
   const oreActive = ore.filter((ora) =>
-    (["diana", "iulia"] as const).some(
-      (persoana) => {
-        const activitate = activitati(persoana, ora);
+    (["diana", "iulia"] as const).some((persoana) => {
+      const activitate = activitati(persoana, ora);
 
-        return (
-          activitate.laMunca ||
-          activitate.laFacultate
-        );
-      }
-    )
+      return (
+        activitate.laMunca ||
+        activitate.laFacultate ||
+        activitate.esteOcupata
+      );
+    })
   );
 
   const primaOra =
